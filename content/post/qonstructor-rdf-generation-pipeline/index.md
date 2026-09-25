@@ -25,11 +25,11 @@ I could have used existing tools like Morph-KGC in different parts of the pipeli
 
 ## Qonstructor architecture
 
-Qonstructor is a Python program that orchestrates different external software such as QLever, an efficient RDF database engine. When Qonstructor starts, it first parses and validates all configs. Then it runs its sequential stages.
+Qonstructor is a Python program that orchestrates different external software such as QLever, an efficient RDF database engine. When Qonstructor starts, it first parses and validates all configs, then it runs its sequential stages.
 
 Stage 0 is the generic-generation-stage. It converts raw data into generic RDF by utilizing generator programs. Qonstructor contains generator programs for CSV, JSON and GeoTIFF files. Custom generator programs can be added to the pipeline. How each source file is converted is defined in the configs. At the end of the stage, a QLever index is built from the resulting generic RDF and a QLever server is started.
 
-Stages 1-9 are the construct-stages. Each construct-stage executes construct-queries on the QLever server from the stage before. The construct-queries for every stage are also defined in the configs. The resulting RDF of the construct-queries from this stage then gets combined with the RDF of all previous construct-stages. I call this RDF-forwarding. A new QLever index is built and a new server is started from this. This results in a separation of the generic RDF and the final RDF. All data that should go from the generic RDF to the final RDF needs to be manually generated with construct-queries of the first stage. Construct-stages 2-9 only enrich the final RDF by adding triples.
+Stages 1-9 are the construct-stages. Each construct-stage executes construct-queries on the QLever server from the stage before. The construct-queries for every stage are also defined in the configs. The resulting RDF of the construct-queries from this stage then gets combined with the RDF of all previous construct-stages. I call this RDF-forwarding. A new QLever index is built and a new QLever server is started. This results in a separation of the generic RDF and the final RDF. All data that should go from the generic RDF to the final RDF needs to be manually generated with construct-queries of the first stage. Construct-stages 2-9 only enrich the final RDF by adding triples.
 
 There is one final stage called the export-stage, where a single construct-query is run on the last QLever server. The export-query can also be defined in the configs. This step yields one compressed N-Triples file (`final.nt.gz`) that can then be used for different applications. The default export-query just exports all triples, but it can be changed, for example to filter for specific triples.
 
@@ -87,7 +87,7 @@ The options `construct_workers` and `generic_workers` define how many construct-
 
 ### Source-Files
 
-The source files `users.csv` and `orders.csv` are also included in the example-workspace. Both files are shown below:
+The source files `users.csv` and `orders.csv` are also included in the example-workspace. Samples of both files are shown below:
 
 ```bash
 # users.csv
@@ -97,6 +97,7 @@ id,first_name,last_name,email,username,signup_date,age
 3,Karyl,Magwood,kmagwood3@outlook.com,karyl.magwood3,2026-01-24,24
 4,Ramsay,Mayoh,rmayoh4@github.io,ramsay.mayoh4,2024-03-30,55
 5,Morton,Solano,msolano5@arizona.edu,morton.solano5,2024-02-02,19
+...
 ```
 
 ```bash
@@ -107,6 +108,7 @@ id,user_id,product,quantity,price,order_date,status
 3,44,Laptop Stand,5,188.97,2026-02-26,delivered
 4,8,Backpack,4,43.75,2024-01-04,cancelled
 5,47,Water Bottle,5,191.68,2025-06-03,cancelled
+...
 ```
 
 ### Stage-Configuration-File
@@ -197,6 +199,7 @@ gen:Row_users_01 gen:id "1"^^xsd:int ;
   dat:username "mateo.reeders1" ;
   dat:signup_date "2024-01-26" ;
   dat:age "65" .
+...
 ```
 
 ```sparql
@@ -214,6 +217,7 @@ gen:Row_orders_001 gen:id "1"^^xsd:int ;
   dat:price "151.12" ;
   dat:order_date "2025-01-29" ;
   dat:status "shipped" .
+...
 ```
 
 ### Construct-Stage 1
@@ -279,7 +283,7 @@ Both queries follow a simple schema. The triple patterns in the WHERE-block are 
 
 ### Construct-Stage 2
 
-The second construct-stage has one query that links a user to an order. I therefore call this stage the linking-stage:
+The second construct-stage has one query that links a user to an order. I therefore call this stage linking-stage:
 
 ```sparql
 PREFIX ex: <http://example.com/>
@@ -291,11 +295,11 @@ CONSTRUCT {
 }
 ```
 
-This example is a bit redundant, because this link could also be established in the order construct-query.
+This example is a bit redundant, because this link could also be established in an earlier construct-query.
 
 ### Construct-Stage 3
 
-I call the third construct-stage of this example the inference-stage, because we simply infer new data from existing triples. Below is the only query in this stage:
+I call the third construct-stage of this example inference-stage, because it simply infers new data from existing triples. Below is the only query in this stage:
 
 ```sparql
 PREFIX ex: <http://example.com/>
@@ -322,6 +326,7 @@ The export-stage in the example-workspace executes `CONSTRUCT { ?s ?p ?o } WHERE
 <http://example.com/order_21> <http://example.com/orderedBy> <http://example.com/user_7> .
 <http://example.com/order_46> <http://example.com/status> "cancelled" .
 <http://example.com/user_31> <http://example.com/email> "cfellgate31@yahoo.com" .
+...
 ```
 
 ## Conclusion
