@@ -5,10 +5,10 @@ author: "Felix Vierthaler"
 authorAvatar: "img/ada.jpg"
 tags: []
 categories: []
-image: "img/pipeline-diagram.png"
+image: "img/banner-glitch.png"
 ---
 
-The Resource Description Framework (RDF) is a W3C-standard for modelling Data as graph with nodes that resemble entities and edges that are relationships between those entities. Existing heterogenous data often needs to be transformed to RDF. However, when you are tasked with converting extisting data from multiple different sources and file formats into a well structured rdf graph, you may ask yourself - well - how best to do this? In this article, i introduce Qonstructor, a domain-independent rdf-generation Pipeline.
+The Resource Description Framework (RDF) is a W3C-standard for modelling Data as graph with nodes that resemble entities and edges that are relationships between those entities. Existing heterogeneous data often needs to be transformed to RDF. However, when you are tasked with converting existing data from multiple different sources and file formats into a well structured rdf graph, you may ask yourself - well - how best to do this? In this article, I introduce Qonstructor, a domain-independent rdf-generation Pipeline.
 
 <!--more-->
 
@@ -20,9 +20,9 @@ In the world of relational databases - the evil enemy of the graph-world - there
 
 In the RDF-World, there are also many tools that can convert raw data into RDF. For example Tools based on the RML-Mapping-Standard, such as Morph-KGC. However, there are not many Tools designed to convert multiple different files from different formats into one structured knowledge-graph.
 
-The goal of this project was to create a pipeline that can be used to build RDF-graphs from heterogenous raw data. This pipeline was needed for the WWW-4.0 Project (Wissen über den Wald im Wandel). But the goal was to build a domain-independant pipeline that can also be used for different projects.
+The goal of this project was to create a pipeline that can be used to build RDF-graphs from heterogeneous raw data. This pipeline was needed for the WWW-4.0 Project (Wissen über den Wald im Wandel). But the goal was to build a domain-independent pipeline that can also be used for different projects.
 
-I could have used existing tools like Morph-KGC in different parts of the pipeline. But the problem with those tools is, that they are generally pretty slow. The alternative was to first convert all of the raw data into a generic RDF and then use native RDF-technology such as construct-queries to transform the data. With this general Idea in mind, I designed Qonstructor. In this Blog-post i will give a general overview of the architecture and usage of qonstructor.
+I could have used existing tools like Morph-KGC in different parts of the pipeline. But the problem with those tools is, that they are generally pretty slow. The alternative was to first convert all of the raw data into a generic RDF and then use native RDF-technology such as construct-queries to transform the data. With this general Idea in mind, I designed Qonstructor. In this Blog-post I will give a general overview of the architecture and usage of qonstructor.
 
 ## Qonstructor architecture
 
@@ -30,7 +30,7 @@ Qonstructor is a python program that orchestrates different external software. W
 
 Stage 0 is the generic-generation-stage. It converts raw data into generic RDF by utilizing generator-programs. Qonstructor contains generator-programs for csv-files, json-files and geotiff-files. Custom generator-programs can be added to the pipeline. How each source-file is converted can all be defined in the configs. At the end of the stage, a qlever index is built from the resulting RDF and a qlever server is started.
 
-Stages 1-9 are the construct-stages. Each construct stage executes construct-queries on the qlever-server from the stage before. The Qonstruct-queries for every stage are also defined in the configs. The resulting RDF of the construct-queries from this stage then gets combined with the RDF of all previous construct-stages. I call this RDF-forwarding. A new Qlever index and server are built/started from this. This results in a seperation of the generic-rdf and the final rdf. All data that should go from the generic-rdf to the final rdf needs to be manually generated with construct-queries of the first stage. Qonstruct-stages 2-9 only enrich the final rdf by adding triples.
+Stages 1-9 are the construct-stages. Each construct stage executes construct-queries on the qlever-server from the stage before. The Qonstruct-queries for every stage are also defined in the configs. The resulting RDF of the construct-queries from this stage then gets combined with the RDF of all previous construct-stages. I call this RDF-forwarding. A new Qlever index and server are built/started from this. This results in a separation of the generic-rdf and the final rdf. All data that should go from the generic-rdf to the final rdf needs to be manually generated with construct-queries of the first stage. Qonstruct-stages 2-9 only enrich the final rdf by adding triples.
 
 There is one final Stage called Export-Stage, where a single construct-query is run on the last Qlever server. The export-query can also be defined in the configs. This step yields one compressed n-triples File (`final.nt.gz`) that can then be used for different applications. The default export-query just exports all triples, but can be changed, for example to filter for specific triples.
 
@@ -38,21 +38,21 @@ The following pipeline-diagram visualizes this architecture:
 
 ![](img/pipeline-diagram.png)
 
-A few questins about this architecture might arise..
+A few questions about this architecture might arise..
 
 **Reproducibility:**
-Qonstructor is designed as a docker-container. Docker-compose is used to easily start the qonstructor-container and a seperate qlever-ui container at the same time. A makefile simplifies those actions.
+Qonstructor is designed as a docker-container. Docker-compose is used to easily start the qonstructor-container and a separate qlever-ui container at the same time. A makefile simplifies those actions.
 
 **Observability:**
 The qlever-ui is accessible during the whole time. The Qlever-servers of the stages are only stopped once the pipeline is rerun or the pipeline-container is stopped. This enables manual testing of the stages with SPARQL-queries during the whole pipeline-lifecycle.
 
-**Why are multiple qonstruct-stages needed?:** Well, there might be construct-queries that are dependant on triples that need to be generated by other construct-queries.
+**Why are multiple qonstruct-stages needed?:** Well, there might be construct-queries that are dependent on triples that need to be generated by other construct-queries.
 
 **Why are qonstruct-queries used and not update-queries?:** Update-queries can not be run in parallel by the qlever-server, because the execution order might change the output of the queries. Qonstruct-queries on the other hand can run in parallel. This means, when you want to run many qonstruct-queries that yield large outputs, using qonstruct-queries and later rebuilding the qlever index might be faster.
 
 ## Example Workspace
 
-All persistent data like config files and resulting rdf of Qonstructor is located in the workspace folder. Qonstructor comes with an example workspace-folder that is designed to explain the config structure and architecture of qonstructor. Qonstructor can be executed on this example-workspace, which only takes a few seconds to fully finnish. In this section, i will explain the example workspace. It contains two source files, a `users.csv` and a `orders.csv`. Every order is made by a specific user, which is referenced by the id. Both files are shown below:
+All persistent data like config files and resulting rdf of Qonstructor is located in the workspace folder. Qonstructor comes with an example workspace-folder that is designed to explain the config structure and architecture of qonstructor. Qonstructor can be executed on this example-workspace, which only takes a few seconds to fully finish. In this section, I will explain the example workspace. It contains two source files, a `users.csv` and a `orders.csv`. Every order is made by a specific user, which is referenced by the id. Both files are shown below:
 **users:**
 
 ```csv
@@ -77,7 +77,7 @@ id,user_id,product,quantity,price,order_date,status
 5,47,Water Bottle,5,191.68,2025-06-03,cancelled
 ```
 
-The example-workspace also contains one stage-configuration file called `example_config.yaml`. There can be multiple stage-configuration files organized in an arbitrary folder structure inside `workspace/configs/`. Each one can define sources and queries. A source consists of a name, path and filetype. A queriy consists of a name, stage where it should run and the query itself. Below is the `example_config.yaml` with shortened queries.
+The example-workspace also contains one stage-configuration file called `example_config.yaml`. There can be multiple stage-configuration files organized in an arbitrary folder structure inside `workspace/configs/`. Each one can define sources and queries. A source consists of a name, path and filetype. A query consists of a name, stage where it should run and the query itself. Below is the `example_config.yaml` with shortened queries.
 
 sources:
 
